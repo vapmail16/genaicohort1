@@ -8,6 +8,7 @@ A comprehensive collection of AI-powered applications and tools demonstrating va
 - [Projects](#projects)
   - [🤖 Simple Chatbot](#-simple-chatbot)
   - [📚 Simple RAG](#-simple-rag)
+  - [🤖 Simple Agent](#-simple-agent)
   - [🏗️ Project Scaffold](#️-project-scaffold)
 - [Quick Start](#quick-start)
 - [Technology Stack](#technology-stack)
@@ -16,11 +17,12 @@ A comprehensive collection of AI-powered applications and tools demonstrating va
 
 ## 🎯 Overview
 
-This repository contains three distinct AI projects that showcase different aspects of modern AI development:
+This repository contains four distinct AI projects that showcase different aspects of modern AI development:
 
 1. **Simple Chatbot** - A feature-rich conversational AI with multiple personalities
 2. **Simple RAG** - A Retrieval-Augmented Generation system for document processing
-3. **Project Scaffold** - A comprehensive project template with diagnostics and monitoring
+3. **Simple Agent** - A multi-agent stock analysis system with AI collaboration
+4. **Project Scaffold** - A comprehensive project template with diagnostics and monitoring
 
 Each project is self-contained with its own dependencies, configuration, and documentation.
 
@@ -105,6 +107,63 @@ simple-rag/
 
 ---
 
+### 🤖 Simple Agent
+
+**Location**: `simple-agent/`
+
+A sophisticated multi-agent stock analysis system that demonstrates AI collaboration for financial analysis. This application uses multiple specialized AI agents working together to provide comprehensive stock market insights and recommendations.
+
+#### ✨ Key Features
+- **Multi-Agent Architecture**: 4 specialized AI agents collaborating on analysis
+- **Real-time Stock Data**: Live financial data from Yahoo Finance
+- **News Sentiment Analysis**: AI-powered sentiment analysis of market news
+- **Risk Assessment**: Comprehensive risk evaluation and scoring
+- **Interactive Web Interface**: Beautiful Streamlit-based dashboard
+- **Human-in-the-Loop**: Approval system for AI recommendations
+- **Comprehensive Testing**: 34+ tests ensuring reliability
+
+#### 🚀 Quick Start
+```bash
+cd simple-agent
+pip install -r requirements.txt
+
+# Set up environment variables (optional for testing)
+cp .env.example .env
+# Add your OPENAI_API_KEY and NEWS_API_KEY
+
+# Launch the application
+./start_app.sh
+# Or manually: streamlit run streamlit_app.py
+```
+
+#### 📁 Structure
+```
+simple-agent/
+├── streamlit_app.py          # Main web application
+├── demo_visual_interface.py  # Visual interface demo
+├── run_app.py               # Application runner
+├── start_app.sh             # Startup script
+├── requirements.txt         # Python dependencies
+├── src/                     # Source code
+│   ├── agents/              # AI agent implementations
+│   ├── tools/               # Stock analysis tools
+│   ├── multi_agents/        # Multi-agent coordination
+│   ├── ui/                  # User interface components
+│   └── utils/               # Utility functions
+├── tests/                   # Test suite
+├── README.md               # Detailed documentation
+├── LAUNCH_INSTRUCTIONS.md  # Launch guide
+└── VISUAL_INTERFACE_README.md # UI documentation
+```
+
+#### 🎯 Agent Roles
+1. **📊 Stock Fetcher**: Retrieves financial data and metrics
+2. **📰 News Analyst**: Analyzes market sentiment from news
+3. **⚖️ Risk Assessor**: Evaluates investment risks
+4. **📋 Report Generator**: Creates comprehensive recommendations
+
+---
+
 ### 🏗️ Project Scaffold
 
 **Location**: `project_scaffold/`
@@ -149,7 +208,8 @@ project_scaffold/
 ### Prerequisites
 - Python 3.8 or higher
 - Docker (for Simple RAG)
-- OpenAI API key (for Simple Chatbot and Project Scaffold)
+- OpenAI API key (for Simple Chatbot, Simple Agent, and Project Scaffold)
+- News API key (optional, for Simple Agent)
 
 ### Installation
 
@@ -188,14 +248,22 @@ DEBUG=true
 DATABASE_URL=your_database_url
 ```
 
+**Simple Agent** (`simple-agent/.env`):
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+NEWS_API_KEY=your_newsapi_key_here
+```
+
 ## 🛠️ Technology Stack
 
 ### Core Technologies
 - **Python 3.8+** - Primary programming language
-- **Streamlit** - Web application framework (Simple Chatbot)
+- **Streamlit** - Web application framework (Simple Chatbot, Simple Agent)
 - **FastAPI** - REST API framework (Simple RAG)
 - **OpenAI GPT** - Large Language Model integration
 - **Qdrant** - Vector database (Simple RAG)
+- **LangChain** - AI agent framework (Simple Agent)
+- **CrewAI** - Multi-agent orchestration (Simple Agent)
 - **Poetry** - Dependency management (Project Scaffold)
 
 ### Key Libraries
@@ -207,17 +275,21 @@ DATABASE_URL=your_database_url
 - **qdrant-client** - Vector database client
 - **pypdf** - PDF processing
 - **sentence-transformers** - Text embeddings
+- **langchain** - AI agent framework
+- **crewai** - Multi-agent orchestration
+- **yfinance** - Stock market data
+- **plotly** - Interactive visualizations
 
 ## 📊 Project Comparison
 
-| Feature | Simple Chatbot | Simple RAG | Project Scaffold |
-|---------|----------------|------------|------------------|
-| **Primary Purpose** | Conversational AI | Document Processing | Project Template |
-| **UI Framework** | Streamlit | FastAPI | CLI |
-| **AI Integration** | OpenAI GPT | Vector Search | Diagnostics |
-| **Data Storage** | CSV/JSON | Qdrant Vector DB | File-based |
-| **Deployment** | Streamlit Cloud | Docker | Local/Cloud |
-| **Complexity** | Medium | High | Low |
+| Feature | Simple Chatbot | Simple RAG | Simple Agent | Project Scaffold |
+|---------|----------------|------------|--------------|------------------|
+| **Primary Purpose** | Conversational AI | Document Processing | Stock Analysis | Project Template |
+| **UI Framework** | Streamlit | FastAPI | Streamlit | CLI |
+| **AI Integration** | OpenAI GPT | Vector Search | Multi-Agent AI | Diagnostics |
+| **Data Storage** | CSV/JSON | Qdrant Vector DB | Real-time APIs | File-based |
+| **Deployment** | Streamlit Cloud | Docker | Streamlit Cloud | Local/Cloud |
+| **Complexity** | Medium | High | High | Low |
 
 ## 🔧 Development
 
@@ -232,6 +304,10 @@ python test_chatbot.py
 # Simple RAG
 cd simple-rag
 python test_connection.py
+
+# Simple Agent
+cd simple-agent
+python -m pytest tests/ -v
 
 # Project Scaffold
 cd project_scaffold/my_project
@@ -261,6 +337,12 @@ poetry run make check
 - Document processing statistics
 - API response time monitoring
 
+### Simple Agent
+- Multi-agent collaboration metrics
+- Stock analysis performance tracking
+- Real-time data processing statistics
+- Agent response time monitoring
+
 ### Project Scaffold
 - Comprehensive system diagnostics
 - Database connectivity monitoring
@@ -281,6 +363,14 @@ Deploy with Docker:
 ```bash
 cd simple-rag
 docker-compose up -d
+```
+
+### Simple Agent
+Deploy to Streamlit Cloud:
+```bash
+cd simple-agent
+# Push to GitHub and connect to Streamlit Cloud
+# Or run locally: streamlit run streamlit_app.py
 ```
 
 ### Project Scaffold
@@ -338,10 +428,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Streamlit** for the amazing web framework
 - **Qdrant** for the vector database
 - **FastAPI** for the modern API framework
+- **LangChain** for the AI agent framework
+- **CrewAI** for multi-agent orchestration
 - **Poetry** for dependency management
 
 ---
 
 **Happy AI Development! 🚀✨**
 
-*This collection demonstrates the power and versatility of modern AI tools and frameworks, from conversational interfaces to intelligent document processing and robust project scaffolding.* 
+*This collection demonstrates the power and versatility of modern AI tools and frameworks, from conversational interfaces to intelligent document processing, multi-agent financial analysis, and robust project scaffolding.* 
