@@ -1,0 +1,24 @@
+# Qdrant Configuration
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+QDRANT_API_KEY=
+COLLECTION_NAME=documents
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Embedding Configuration
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+
+# API Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+
+# Document Processing
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+
+# Text Cleaning Configuration
+REMOVE_STOPWORDS=false
+REMOVE_NUMBERS=false
+CLEANING_LANGUAGE=english 
