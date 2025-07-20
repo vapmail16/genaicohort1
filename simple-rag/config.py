@@ -26,4 +26,9 @@ API_PORT = int(os.getenv("API_PORT", "8000"))
 
 # Document Processing
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200")) 
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
+
+# Text Cleaning Configuration
+REMOVE_STOPWORDS = os.getenv("REMOVE_STOPWORDS", "false").lower() == "true"
+REMOVE_NUMBERS = os.getenv("REMOVE_NUMBERS", "false").lower() == "true"
+CLEANING_LANGUAGE = os.getenv("CLEANING_LANGUAGE", "english") 

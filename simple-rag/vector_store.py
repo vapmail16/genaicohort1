@@ -152,7 +152,7 @@ class VectorStore:
         try:
             collection_info = self.client.get_collection(collection_name=self.collection_name)
             return {
-                'name': collection_info.name,
+                'name': self.collection_name,
                 'vectors_count': collection_info.vectors_count,
                 'points_count': collection_info.points_count,
                 'status': collection_info.status
