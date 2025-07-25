@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(python -m pytest tests/test_stock_tools.py -v)",
+      "Bash(python3 -m pytest tests/test_stock_tools.py -v)",
+      "Bash(pip3 install:*)",
+      "Bash(PYTHONPATH=/Users/vikkasarunpareek/Desktop/AI/Projects/simple-agent python3 -m pytest tests/test_stock_tools.py -v)",
+      "Bash(python3:*)",
+      "Bash(PYTHONPATH=. python3 -m pytest tests/test_stock_tools.py -v)",
+      "Bash(PYTHONPATH=. python3 -m pytest tests/test_stock_analyst.py -v)",
+      "Bash(PYTHONPATH=. python3 demo_phase1.py)",
+      "Bash(PYTHONPATH=. python3:*)",
+      "Bash(find:*)",
+      "Bash(streamlit run:*)",
+      "Bash(pkill:*)",
+      "Bash(PYTHONPATH=. streamlit run streamlit_app.py --server.port 8501 --server.headless false --browser.gatherUsageStats false)",
+      "Bash(chmod:*)"
+    ],
+    "deny": []
+  }
+}

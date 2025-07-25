@@ -1,4 +1,8 @@
+# Environment variables and secrets
 .env
+*.env
+env_example.txt
+env_with_cleaning.txt
 
 # Docker
 .dockerignore
@@ -43,6 +47,7 @@ venv.bak/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
@@ -60,3 +65,16 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Data files (if you don't want to include them)
+# data/
+# *.pdf
+
+# NLTK data (if downloaded)
+nltk_data/
+
+# Model files (if you download any)
+*.bin
+*.model
+*.pkl
+*.pickle
