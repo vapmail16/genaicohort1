@@ -1,0 +1,19 @@
+# Development override for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  rag-app:
+    # Override for development
+    volumes:
+      - ./data:/app/data
+      - ./qdrant_storage:/app/qdrant_storage
+      - .:/app  # Mount source code for hot reload
+    environment:
+      - PYTHONPATH=/app
+      - STREAMLIT_SERVER_RUN_ON_SAVE=true
+      - STREAMLIT_SERVER_FILE_WATCHER_TYPE=poll
+    command: ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.runOnSave=true"]
+    # Remove restart policy for development
+    restart: "no" 
