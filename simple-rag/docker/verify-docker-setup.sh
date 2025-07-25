@@ -80,7 +80,7 @@ echo "📁 Checking Project Structure..."
 echo "-------------------------------"
 
 # Check if required files exist
-REQUIRED_FILES=("requirements.txt" "app.py" "config.py" "vector_store.py" "ingestion_service.py")
+REQUIRED_FILES=("requirements.txt" "src/app.py" "src/config.py" "src/vector_store.py" "src/ingestion_service.py")
 DOCKER_FILES=("docker/Dockerfile" "docker/docker-compose.yml")
 
 # Check main application files

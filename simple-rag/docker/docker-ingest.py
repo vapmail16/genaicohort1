@@ -7,6 +7,10 @@ This script helps ingest documents into the vector database when running in Dock
 import os
 import sys
 from pathlib import Path
+import sys
+import os
+sys.path.append('/app/src')
+
 from ingestion_service import load_pdfs_from_directory, chunk_documents
 from vector_store import VectorStore
 from config import CHUNK_SIZE, CHUNK_OVERLAP
