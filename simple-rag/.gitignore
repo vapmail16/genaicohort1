@@ -4,6 +4,14 @@
 env_example.txt
 env_with_cleaning.txt
 
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Data and storage
+data/
+qdrant_storage/
+
 # Python
 __pycache__/
 *.py[cod]
