@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 import os
 sys.path.append('/app/src')
+sys.path.append('/app/examples')
 
 from ingestion_service import load_pdfs_from_directory, chunk_documents
 from vector_store import VectorStore

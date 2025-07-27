@@ -3,8 +3,7 @@ from typing import List, Dict
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from vector_store import VectorStore
-from simple_text_cleaner import create_simple_text_cleaner
-from config import CHUNK_SIZE, CHUNK_OVERLAP, REMOVE_STOPWORDS, REMOVE_NUMBERS
+from config import CHUNK_SIZE, CHUNK_OVERLAP
 
 DATA_DIR = "data"
 
@@ -51,17 +50,8 @@ def main():
         print("No PDF files found in data/ directory.")
         return
     
-    # Initialize text cleaner
-    print("Initializing text cleaner...")
-    cleaner = create_simple_text_cleaner(remove_numbers=REMOVE_NUMBERS)
-    
-    # Clean the documents
-    print("Cleaning documents...")
-    cleaned_docs = cleaner.clean_documents(docs, remove_stopwords=REMOVE_STOPWORDS)
-    print(f"Cleaned {len(cleaned_docs)} documents.")
-    
     print("Chunking text...")
-    chunked_docs = chunk_documents(cleaned_docs, CHUNK_SIZE, CHUNK_OVERLAP)
+    chunked_docs = chunk_documents(docs, CHUNK_SIZE, CHUNK_OVERLAP)
     print(f"Created {len(chunked_docs)} text chunks. Ingesting into Qdrant...")
     vs = VectorStore()
     ids = vs.add_documents(chunked_docs)

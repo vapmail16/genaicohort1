@@ -1,4 +1,7 @@
 import streamlit as st
+import sys
+import os
+sys.path.append('/app/examples')
 from vector_store_simple import SimpleVectorStore
 from simple_text_cleaner import create_simple_text_cleaner
 from config import REMOVE_STOPWORDS, REMOVE_NUMBERS
