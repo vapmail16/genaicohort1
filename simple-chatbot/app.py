@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import time
+import json
 from chatbot_core import ChatbotCore
 from config import Config
+from analytics import ChatAnalytics
 
 # Page configuration
 st.set_page_config(
@@ -112,6 +114,17 @@ def initialize_session_state():
     # Track manual personality selections
     if 'manual_personality_counts' not in st.session_state:
         st.session_state.manual_personality_counts = {key: 0 for key in Config.PERSONALITIES.keys()}
+    
+    # Initialize analytics
+    if 'analytics' not in st.session_state:
+        st.session_state.analytics = ChatAnalytics()
+    
+    # Track session start
+    if 'session_tracked' not in st.session_state:
+        session_id = st.session_state.get('session_id', f"session_{int(time.time())}")
+        st.session_state.session_id = session_id
+        st.session_state.analytics.track_session_start(session_id)
+        st.session_state.session_tracked = True
 
 def render_personality_selector():
     """Render the personality selection interface."""
@@ -134,6 +147,8 @@ def render_personality_selector():
                     st.session_state.current_personality = key
                     # Increment manual personality count
                     st.session_state.manual_personality_counts[key] += 1
+                    # Track personality change
+                    st.session_state.analytics.track_personality_change(st.session_state.session_id, key)
                     st.rerun()
 
 def render_chat_interface():
@@ -197,12 +212,28 @@ def render_chat_interface():
         with col2:
             if st.button("🚀 Send Message", use_container_width=True):
                 if user_input.strip():
+                    # Track user message
+                    st.session_state.analytics.track_message(
+                        st.session_state.session_id, 
+                        "user", 
+                        user_input, 
+                        st.session_state.current_personality
+                    )
+                    
                     # Add user message to chat
                     st.session_state.messages.append({"role": "user", "content": user_input})
                     
                     # Get bot response
                     with st.spinner("🤔 Thinking..."):
                         response, success = st.session_state.chatbot.get_response(user_input)
+                    
+                    # Track bot response
+                    st.session_state.analytics.track_message(
+                        st.session_state.session_id, 
+                        "bot", 
+                        response, 
+                        st.session_state.current_personality
+                    )
                     
                     # Add bot response to chat
                     st.session_state.messages.append({"role": "assistant", "content": response})
@@ -298,6 +329,84 @@ def render_sidebar_features():
             st.sidebar.markdown(f"**Model:** {cost_stats.get('current_model', 'Unknown')}")
             st.sidebar.markdown(f"**Input Tokens:** {cost_stats.get('input_tokens', 0):,}")
             st.sidebar.markdown(f"**Output Tokens:** {cost_stats.get('output_tokens', 0):,}")
+    
+    # Analytics Dashboard
+    st.sidebar.markdown("### 📊 Analytics Dashboard")
+    
+    # Get analytics summary
+    analytics_summary = st.session_state.analytics.get_analytics_summary()
+    
+    if analytics_summary:
+        # Total users
+        st.sidebar.markdown(f"""
+        <div class="metric-card">
+            <h3>Total Users</h3>
+            <h2>{analytics_summary.get('total_users', 0)}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Recent activity
+        st.sidebar.markdown(f"""
+        <div class="metric-card">
+            <h3>Recent Users (24h)</h3>
+            <h2>{analytics_summary.get('recent_users_24h', 0)}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Total messages
+        st.sidebar.markdown(f"""
+        <div class="metric-card">
+            <h3>Total Messages</h3>
+            <h2>{analytics_summary.get('total_messages', 0)}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Recent messages
+        st.sidebar.markdown(f"""
+        <div class="metric-card">
+            <h3>Recent Messages (24h)</h3>
+            <h2>{analytics_summary.get('recent_messages_24h', 0)}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Average session duration
+        avg_duration = analytics_summary.get('avg_session_duration_min', 0)
+        st.sidebar.markdown(f"""
+        <div class="metric-card">
+            <h3>Avg Session Duration</h3>
+            <h2>{avg_duration:.1f} min</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Top personality
+        top_personality = analytics_summary.get('top_personality', 'None')
+        st.sidebar.markdown(f"**Most Popular:** {top_personality}")
+        
+        # Device breakdown
+        device_breakdown = analytics_summary.get('device_breakdown', {})
+        if device_breakdown:
+            st.sidebar.markdown("### 📱 Device Types")
+            for device, count in device_breakdown.items():
+                st.sidebar.markdown(f"**{device}:** {count}")
+        
+        # Location breakdown
+        location_breakdown = analytics_summary.get('location_breakdown', {})
+        if location_breakdown:
+            st.sidebar.markdown("### 🌍 Locations")
+            for location, count in location_breakdown.items():
+                st.sidebar.markdown(f"**{location}:** {count}")
+        
+        # Personality usage
+        personality_usage = analytics_summary.get('personality_usage', {})
+        if personality_usage:
+            st.sidebar.markdown("### 🤖 Personality Usage")
+            for personality, count in personality_usage.items():
+                st.sidebar.markdown(f"**{personality}:** {count}")
+    
+    # Show detailed analytics button
+    if st.sidebar.button("📈 View Detailed Analytics", use_container_width=True):
+        st.session_state.show_analytics = True
+        st.rerun()
         
         # Manual personality selection stats
         manual_counts = st.session_state.manual_personality_counts
@@ -421,20 +530,139 @@ def render_advanced_features():
         🔄 Voice input/output  
         """)
 
+def render_analytics_page():
+    """Render the detailed analytics page."""
+    st.markdown("# 📊 Detailed Analytics Dashboard")
+    
+    # Get analytics data
+    analytics_summary = st.session_state.analytics.get_analytics_summary()
+    recent_activity = st.session_state.analytics.get_recent_activity(20)
+    
+    # Overview metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total Users", analytics_summary.get('total_users', 0))
+    with col2:
+        st.metric("Total Messages", analytics_summary.get('total_messages', 0))
+    with col3:
+        st.metric("Recent Users (24h)", analytics_summary.get('recent_users_24h', 0))
+    with col4:
+        st.metric("Recent Messages (24h)", analytics_summary.get('recent_messages_24h', 0))
+    
+    # Charts and detailed breakdowns
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Device breakdown chart
+        device_breakdown = analytics_summary.get('device_breakdown', {})
+        if device_breakdown:
+            st.markdown("### 📱 Device Types")
+            st.bar_chart(device_breakdown)
+        
+        # Personality usage chart
+        personality_usage = analytics_summary.get('personality_usage', {})
+        if personality_usage:
+            st.markdown("### 🤖 Personality Usage")
+            st.bar_chart(personality_usage)
+    
+    with col2:
+        # Location breakdown chart
+        location_breakdown = analytics_summary.get('location_breakdown', {})
+        if location_breakdown:
+            st.markdown("### 🌍 Locations")
+            st.bar_chart(location_breakdown)
+        
+        # Session duration
+        avg_duration = analytics_summary.get('avg_session_duration_min', 0)
+        st.markdown("### ⏱️ Average Session Duration")
+        st.metric("Duration", f"{avg_duration:.1f} minutes")
+    
+    # Recent activity table
+    if recent_activity:
+        st.markdown("### 📝 Recent Activity")
+        activity_df = pd.DataFrame(recent_activity)
+        activity_df['timestamp'] = pd.to_datetime(activity_df['timestamp'])
+        activity_df = activity_df.sort_values('timestamp', ascending=False)
+        
+        # Display only relevant columns
+        display_columns = ['timestamp', 'message_type', 'personality', 'message_length']
+        if all(col in activity_df.columns for col in display_columns):
+            st.dataframe(
+                activity_df[display_columns].head(10),
+                use_container_width=True
+            )
+    
+    # Session details
+    st.markdown("### 🔍 Session Details")
+    sessions = st.session_state.analytics.analytics_data.get('sessions', {})
+    
+    if sessions:
+        # Create a summary table of sessions
+        session_data = []
+        for session_id, session_info in sessions.items():
+            session_data.append({
+                'Session ID': session_id[:8] + '...',  # Truncate for privacy
+                'Start Time': session_info.get('start_time', 'Unknown'),
+                'Messages': session_info.get('messages_count', 0),
+                'Device': session_info.get('device', {}).get('device_type', 'Unknown'),
+                'Personalities Used': len(session_info.get('personalities_used', [])),
+                'Last Activity': session_info.get('last_activity', 'Unknown')
+            })
+        
+        session_df = pd.DataFrame(session_data)
+        st.dataframe(session_df, use_container_width=True)
+    
+    # Export analytics data
+    st.markdown("### 📤 Export Analytics")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📊 Export Analytics as JSON"):
+            analytics_json = json.dumps(st.session_state.analytics.analytics_data, indent=2)
+            st.download_button(
+                label="Download Analytics JSON",
+                data=analytics_json,
+                file_name=f"analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                mime="application/json"
+            )
+    
+    with col2:
+        if st.button("📈 Export Analytics as CSV"):
+            # Create a CSV with session data
+            if sessions:
+                session_df.to_csv(index=False)
+                csv_data = session_df.to_csv(index=False)
+                st.download_button(
+                    label="Download Sessions CSV",
+                    data=csv_data,
+                    file_name=f"sessions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    mime="text/csv"
+                )
+
 def main():
     """Main application function."""
     initialize_session_state()
     
-    # Sidebar
-    with st.sidebar:
-        render_personality_selector()
-        render_sidebar_features()
-    
-    # Main content
-    render_chat_interface()
-    
-    # Advanced features in tabs
-    render_advanced_features()
+    # Check if analytics page should be shown
+    if st.session_state.get('show_analytics', False):
+        render_analytics_page()
+        
+        # Back button
+        if st.button("← Back to Chat"):
+            st.session_state.show_analytics = False
+            st.rerun()
+    else:
+        # Sidebar
+        with st.sidebar:
+            render_personality_selector()
+            render_sidebar_features()
+        
+        # Main content
+        render_chat_interface()
+        
+        # Advanced features in tabs
+        render_advanced_features()
 
 if __name__ == "__main__":
     main() 
