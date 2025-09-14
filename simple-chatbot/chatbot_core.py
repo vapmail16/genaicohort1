@@ -22,7 +22,13 @@ class ChatbotCore:
     
     def __init__(self):
         """Initialize the chatbot with OpenAI client and conversation memory."""
-        self.client = openai.OpenAI(api_key=Config.OPENAI_API_KEY)
+        try:
+            self.client = openai.OpenAI(api_key=Config.OPENAI_API_KEY)
+        except (TypeError, AttributeError) as e:
+            # Handle compatibility issues with older OpenAI versions
+            # For openai==0.28.1, use the legacy API
+            openai.api_key = Config.OPENAI_API_KEY
+            self.client = openai
         self.conversation_history: List[Dict] = []
         self.current_personality = 'friendly'
         self.system_message = Config.PERSONALITIES[self.current_personality]['system_message']
@@ -108,18 +114,32 @@ class ChatbotCore:
             
             # Call OpenAI API with timeout
             start_time = time.time()
-            response = self.client.chat.completions.create(
-                model=Config.DEFAULT_MODEL,
-                messages=messages,
-                max_tokens=Config.MAX_TOKENS,
-                temperature=Config.TEMPERATURE,
-                timeout=30  # 30 second timeout
-            )
             
-            bot_response = response.choices[0].message.content
-            
-            # Track token usage and calculate cost
-            self._track_usage_and_cost(response)
+            # Check if using new or legacy API
+            if hasattr(self.client, 'chat'):
+                # New API (openai >= 1.0)
+                response = self.client.chat.completions.create(
+                    model=Config.DEFAULT_MODEL,
+                    messages=messages,
+                    max_tokens=Config.MAX_TOKENS,
+                    temperature=Config.TEMPERATURE,
+                    timeout=30  # 30 second timeout
+                )
+                bot_response = response.choices[0].message.content
+                # Track token usage and calculate cost
+                self._track_usage_and_cost(response)
+            else:
+                # Legacy API (openai < 1.0)
+                response = self.client.ChatCompletion.create(
+                    model=Config.DEFAULT_MODEL,
+                    messages=messages,
+                    max_tokens=Config.MAX_TOKENS,
+                    temperature=Config.TEMPERATURE,
+                    timeout=30  # 30 second timeout
+                )
+                bot_response = response.choices[0].message.content
+                # Track token usage and calculate cost for legacy API
+                self._track_usage_and_cost_legacy(response)
             
             # Add to conversation history
             self.conversation_history.append({"role": "user", "content": user_message})
@@ -135,25 +155,26 @@ class ChatbotCore:
             logger.info(f"Response generated successfully in {time.time() - start_time:.2f}s")
             return bot_response, True
             
-        except openai.RateLimitError:
-            error_msg = "I'm getting too many requests right now. Please try again in a moment."
-            logger.error("OpenAI rate limit exceeded")
-            return error_msg, False
-            
-        except openai.APITimeoutError:
-            error_msg = "The request timed out. Please try again."
-            logger.error("OpenAI API timeout")
-            return error_msg, False
-            
-        except openai.AuthenticationError:
-            error_msg = "Authentication error. Please check your API key."
-            logger.error("OpenAI authentication failed")
-            return error_msg, False
-            
         except Exception as e:
-            error_msg = f"An unexpected error occurred: {str(e)}"
-            logger.error(f"Unexpected error in get_response: {e}")
-            return error_msg, False
+            # Handle different types of errors based on the error message
+            error_str = str(e).lower()
+            
+            if "rate limit" in error_str or "too many requests" in error_str:
+                error_msg = "I'm getting too many requests right now. Please try again in a moment."
+                logger.error("OpenAI rate limit exceeded")
+                return error_msg, False
+            elif "timeout" in error_str or "timed out" in error_str:
+                error_msg = "The request timed out. Please try again."
+                logger.error("OpenAI API timeout")
+                return error_msg, False
+            elif "authentication" in error_str or "api key" in error_str or "unauthorized" in error_str:
+                error_msg = "Authentication error. Please check your API key."
+                logger.error("OpenAI authentication failed")
+                return error_msg, False
+            else:
+                error_msg = f"An unexpected error occurred: {str(e)}"
+                logger.error(f"Unexpected error in get_response: {e}")
+                return error_msg, False
     
     def _track_usage_and_cost(self, response):
         """Track token usage and calculate API costs."""
@@ -186,6 +207,38 @@ class ChatbotCore:
                 
         except Exception as e:
             logger.error(f"Error tracking usage and cost: {e}")
+
+    def _track_usage_and_cost_legacy(self, response):
+        """Track token usage and calculate API costs for legacy OpenAI API."""
+        try:
+            # Get token usage from response (legacy format)
+            usage = response.usage
+            input_tokens = usage.prompt_tokens
+            output_tokens = usage.completion_tokens
+            total_tokens = usage.total_tokens
+            
+            # Update token counters
+            self.total_input_tokens += input_tokens
+            self.total_output_tokens += output_tokens
+            self.total_tokens_used += total_tokens
+            
+            # Calculate cost based on model pricing
+            model = Config.DEFAULT_MODEL
+            if model in Config.MODEL_PRICING:
+                pricing = Config.MODEL_PRICING[model]
+                input_cost = (input_tokens / 1000) * pricing['input']
+                output_cost = (output_tokens / 1000) * pricing['output']
+                total_cost = input_cost + output_cost
+                
+                self.total_cost += total_cost
+                
+                logger.info(f"Tokens: {input_tokens} input + {output_tokens} output = {total_tokens} total")
+                logger.info(f"Cost: ${input_cost:.6f} + ${output_cost:.6f} = ${total_cost:.6f}")
+            else:
+                logger.warning(f"Pricing not available for model: {model}")
+                
+        except Exception as e:
+            logger.error(f"Error tracking usage and cost (legacy): {e}")
 
     def _log_interaction(self, user_message: str, bot_response: str):
         """Log the interaction to CSV file."""

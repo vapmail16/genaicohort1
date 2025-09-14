@@ -26,9 +26,41 @@ This repository contains four distinct AI projects that showcase different aspec
 
 Each project is self-contained with its own dependencies, configuration, and documentation.
 
-## 🛠️ Projects
+## 🐳 Docker Support
 
-### 🤖 Simple Chatbot
+All applications in this repository are **Docker-ready** with professional-grade configurations and management tools.
+
+### 🚀 Quick Docker Start
+
+```bash
+# Verify Docker setup
+./scripts/verify_docker_setup.sh
+
+# Quick start with guided setup
+./scripts/quick_start.sh
+
+# Launch all applications
+./scripts/run_all_docker.sh
+
+# Stop all applications
+./scripts/stop_all_docker.sh
+```
+
+### 📱 Application URLs (when running all)
+- **Simple RAG**: http://localhost:8501
+- **Simple Agent**: http://localhost:8502
+- **Simple Chatbot**: http://localhost:8503
+- **Simple RAG Fork**: http://localhost:8504
+- **Project Scaffold**: Check logs for output
+
+### 📚 Docker Documentation
+- **Setup Guide**: `docs/DOCKER_SETUP_GUIDE.md` - Comprehensive setup instructions
+- **Status Summary**: `docs/DOCKER_READY_SUMMARY.md` - Complete implementation overview
+- **Scripts**: `scripts/` - Docker management tools
+
+---
+
+## 🛠️ Projects
 
 **Location**: `simple-chatbot/`
 
